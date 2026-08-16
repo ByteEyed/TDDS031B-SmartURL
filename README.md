@@ -9,13 +9,11 @@ SMARTURL is an academic RESTful API application developed to demonstrate core co
 
 The primary objective of SmartURL is to convert long HTTP/HTTPS URLs into concise, unique short URLs (e.g., `http://localhost:8000/aB92xK`) and safely redirect visitors to original web destinations while tracking access analytics.
 
-This project was built specifically for a university **BSc / Computer Science Academic Project** to demonstrate software architecture and API concepts without enterprise over-engineering.
-
 ---
 
 ## 2. Key Features
 
-- **User Authentication**: User registration, login via OAuth2 form-encoded flow, Argon2 password hashing, and signed JWT Bearer tokens.
+- **User Authentication**: User registration, login via OAuth2 form-encoded flow, and signed JWT Bearer tokens.
 - **URL Shortening**: Automatic 6-character random code generation (using `secrets`) or optional custom alias assignment (e.g., `my-link`).
 - **URL Validation**: Pydantic v2 validation ensuring proper HTTP/HTTPS scheme and alias syntax.
 - **Collision Prevention**: Database checks preventing duplicate custom short codes or generated collisions.
@@ -376,46 +374,6 @@ This project is specifically designed to demonstrate core concepts taught in an 
 8. **Automated Testing**:
    - Unit and integration testing with `pytest` and `TestClient`.
    - Isolated in-memory SQLite database setup using pytest fixtures.
-
----
-
-## 14. Educational Component Analysis (Viva Preparation)
-
-### 1. Configuration (`app/core/config.py`)
-- **What it does**: Loads configuration settings (secret keys, database URL, token expiration time) from `.env` files.
-- **Why it is needed**: Prevents hardcoding secret credentials inside source code.
-- **Concept demonstrated**: Environment variables & Pydantic `BaseSettings`.
-- **How to explain in viva**: "We use `pydantic-settings` to automatically parse system environment variables or local `.env` files into strongly-typed Python attributes."
-
-### 2. Database Models (`app/database/models.py`)
-- **What it does**: Defines Python classes (`User`, `URL`, `ClickEvent`) that map directly to SQLite tables.
-- **Why it is needed**: Enables Python object manipulation instead of raw SQL strings.
-- **Concept demonstrated**: Object-Relational Mapping (ORM) and SQLAlchemy 2.x `Mapped` type hints.
-- **How to explain in viva**: "We use SQLAlchemy 2.x declarative models with `Mapped` and `mapped_column` to define table structures, primary keys, foreign keys, and relationships cleanly."
-
-### 3. Dependency Injection (`app/core/dependencies.py`)
-- **What it does**: Provides `get_db()` for database sessions and `get_current_user()` for authenticating API requests.
-- **Why it is needed**: Eliminates duplicate database connection logic and enforces secure authentication across protected routes.
-- **Concept demonstrated**: Dependency Injection (`Depends()`) and generator functions (`yield`).
-- **How to explain in viva**: "FastAPI's dependency injection allows routes to receive a database session and the currently logged-in user automatically before executing route logic."
-
-### 4. Password Hashing (`app/core/security.py`)
-- **What it does**: Hashes plain-text passwords into secure Argon2 hash strings before saving to the database.
-- **Why it is needed**: Protects user credentials in case of a database leak.
-- **Concept demonstrated**: Password security & cryptographic hashing.
-- **How to explain in viva**: "We use `pwdlib` with Argon2, which is a modern, key-derivation password hashing algorithm resistant to GPU cracking."
-
-### 5. Short Code Generation (`app/services/url_service.py`)
-- **What it does**: Generates a 6-character random alphanumeric code using Python's `secrets` module.
-- **Why it is needed**: Provides cryptographically safe random codes for short URLs.
-- **Concept demonstrated**: Cryptographically secure random generation & loop-based collision handling.
-- **How to explain in viva**: "We use Python's `secrets` module rather than `random` because `secrets` provides cryptographically secure randomness suitable for generating unpredictable short codes."
-
-### 6. Public Redirect (`app/routers/urls.py` -> `/{short_code}`)
-- **What it does**: Validates short codes, checks link activation and expiration, increments `click_count`, logs a `ClickEvent`, and issues an HTTP 307 temporary redirect.
-- **Why it is needed**: Performs the core function of a URL shortener.
-- **Concept demonstrated**: HTTP Redirects (`307 Temporary Redirect`), status code semantics (`404` vs `410`), and request metadata extraction (`IP`, `User-Agent`, `Referrer`).
-- **How to explain in viva**: "When a user visits `/{short_code}`, the server checks if the link exists, is active, and unexpired. It logs access analytics and returns an HTTP 307 redirect instructing the browser to navigate to the original URL."
 
 ---
 
