@@ -153,7 +153,13 @@ def delete_short_url(
     "/{short_code}",
     status_code=status.HTTP_307_TEMPORARY_REDIRECT,
     summary="Public Short URL Redirect",
-    description="Public endpoint that redirects visitors to the target original URL and records click analytics."
+    description="Public endpoint that redirects visitors to the target original URL and records click analytics.",
+    responses={
+        307: {"description": "Temporary Redirect to original URL"},
+        200: {"description": "Successfully followed redirect to target destination webpage"},
+        404: {"description": "Short URL not found"},
+        410: {"description": "Short URL expired or inactive"}
+    }
 )
 def redirect_to_url(
     short_code: str,
