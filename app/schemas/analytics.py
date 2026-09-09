@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 
 class ClickEventResponse(BaseModel):
@@ -12,6 +12,12 @@ class ClickEventResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    @field_serializer("timestamp")
+    def serialize_timestamp(self, dt: datetime) -> str:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
+
 
 class URLAnalyticsResponse(BaseModel):
     """Schema for URL analytics details."""
@@ -22,3 +28,11 @@ class URLAnalyticsResponse(BaseModel):
     recent_clicks: List[ClickEventResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("created_at", "last_clicked_at")
+    def serialize_datetimes(self, dt: Optional[datetime]) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()

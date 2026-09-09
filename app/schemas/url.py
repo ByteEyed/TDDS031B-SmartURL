@@ -1,7 +1,7 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_serializer, field_validator
 
 
 class URLCreate(BaseModel):
@@ -13,7 +13,16 @@ class URLCreate(BaseModel):
         max_length=30,
         description="Optional custom short code (3-30 characters, letters, numbers, hyphen, underscore)"
     )
-    expires_at: Optional[datetime] = Field(None, description="Optional expiration timestamp")
+    expires_at: Optional[datetime] = Field(None, description="Optional expiration timestamp (leave null for non-expiring links)")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "original_url": "https://fastapi.tiangolo.com/tutorial/",
+                "custom_alias": "fastapi-guide"
+            }
+        }
+    )
 
     @field_validator("original_url")
     @classmethod
@@ -36,8 +45,16 @@ class URLCreate(BaseModel):
 
 class URLUpdate(BaseModel):
     """Schema for updating URL details (expiration and active status)."""
-    expires_at: Optional[datetime] = Field(None, description="Updated expiration timestamp")
+    expires_at: Optional[datetime] = Field(None, description="Updated expiration timestamp (ISO format)")
     is_active: Optional[bool] = Field(None, description="Activation status toggle")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "is_active": True
+            }
+        }
+    )
 
 
 class URLResponse(BaseModel):
@@ -45,12 +62,25 @@ class URLResponse(BaseModel):
     id: int
     original_url: str
     short_code: str
+    short_url: Optional[str] = None
     created_at: datetime
     expires_at: Optional[datetime] = None
     is_active: bool
     click_count: int
 
     model_config = ConfigDict(from_attributes=True)
+
+    def model_post_init(self, __context):
+        if not self.short_url and self.short_code:
+            self.short_url = f"http://127.0.0.1:8000/{self.short_code}"
+
+    @field_serializer("created_at", "expires_at")
+    def serialize_datetimes(self, dt: Optional[datetime]) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
 
 class URLListResponse(BaseModel):
