@@ -27,3 +27,4 @@ htmlcov/
 *.swp
 .env.example
 /research papers
+DEMO_SCRIPT.md
